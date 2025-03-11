@@ -27,14 +27,14 @@ def receive_email():
     # Dict in format for is_phishing
     dict_email = {'subject':subject, 
                   'preheader_text':None, 
-                  'sender_info':None, 
+                  'sender_info':senderEmail, 
                   'recipient_info':None, 
                   'date_time':None,
                   'body':body, 
                   'footer':None}
     
     dict_tests = {'url_test':0, 
-                  'sender_reputation_test':0, 
+                  'sender_info':1, 
                   'attachment_test':0, 
                   'grammar_test':0, 
                   'tone_test':0}
