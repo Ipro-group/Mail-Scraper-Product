@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gmail Reader</title>
+    <style> /* CSS styling | This will eventually all go into the styles file, I'm just keeping it here to work with atm. */
+        .container{
+            background-color: #192a56;
+            color: white;
+            border: solid #192a56;
+            border-radius: 10px;
+        }
+        .statistics{
+            display: flex;
+            flex-direction: column;
+            border: 2px solid white;
+            border-radius: 20px;
+            width: 90%;
+            text-align: left;
+            margin: 10px auto;
+            }
+        .buttons { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;;
+        }
+        body { 
+            font-family: Arial, sans-serif;
+            width: 250px;
+            background-color: #2ecc71;
+            }
+        button { 
+            display: block;
+            width: 90%;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            color: #2ecc71;
+            background-color: #192a56;
+            border: 2px solid white;
+            border-radius: 20px;
+            cursor: pointer;
+            }
+        footer {
+            text-align: left;
+            margin-left: 10px;
+            color: white;
+        }
+        p {
+            margin-left: 10px;
+        }
+        h2 {
+            text-align: center;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gmail Reader</h2>
+        <p>Click an email to see it sent to the Python script!</p>
+        
+        <div class="statistics">
+            <p>Emails Scanned: <span id="emailCount">###</span></p>
+            <p>Emails Flagged: <span id="emailFlag">###</span></p>
+            <p>Other Data: <span id="sender">###</span></p>
+        </div>
+    
+        <div class="buttons">
+            <button><b>Insights</b></button>
+            <button><b>Account</b></button>
+            <button><b>Settings</b></button>
+        </div> 
+    
+        <footer>
+            <p>Developed by Team 4</p>
+        </footer>
+    </div>
+    
+</body>
+</html>
