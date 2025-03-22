@@ -19,9 +19,10 @@ def receive_email():
     body = data.get('body', 'No Body')
     senderName = data.get('senderName', 'Unknown Sender')
     senderEmail = data.get('senderEmail', 'Unknown Email')
+    links = data.get('links', 'No links')
 
     # Print first 500 characters
-    print(f"\nEmail Received:\nSender: {senderName} <{senderEmail}>\nSubject: {subject}\nBody: {body[:500]}...")
+    print(f"\nEmail Received:\nSender: {senderName} <{senderEmail}>\nSubject: {subject}\nLinks: {links}\nBody: {body[:500]}...")
 
     # Dict in format for is_phishing
     dict_email = {'subject':subject, 

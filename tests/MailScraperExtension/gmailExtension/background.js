@@ -16,7 +16,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 subject: request.subject,
                 body: request.body,
                 senderName: request.senderName,
-                senderEmail: request.senderEmail
+                senderEmail: request.senderEmail,
+                links: request.links
             })
         }).then(response => response.json())
           .then(data => {
