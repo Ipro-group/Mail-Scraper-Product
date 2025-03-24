@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Disclaimer PopUp</title>
+    <style> /* CSS styling | This will eventually all go into the styles file, I'm just keeping it here to work with atm. */
+        .container{
+            background-color: #192a56;
+            color: white;
+            border: solid #192a56;
+            border-radius: 10px;
+            margin: auto;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .message{
+            display: flex;
+            flex-direction: column;
+            border: 2px solid white;
+            border-radius: 20px;
+            width: 90%;
+            text-align: left;
+            margin: 10px auto;
+            }
+        .buttons { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        body { 
+            font-family: Arial, sans-serif;
+            background-color: #730a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            }
+        button { 
+            display: block;
+            width: 90%;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            color: #2ecc71;
+            background-color: #192a56;
+            border: 2px solid white;
+            border-radius: 20px;
+            cursor: pointer;
+            }
+        footer {
+            text-align: left;
+            margin-left: 10px;
+            color: white;
+        }
+        p {
+            margin-left: 10px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        h2 {
+            text-align: center;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message">
+            <h2>Disclaimer</h2>
+            <p>The email you attempted to access has been identified as being potentially dangerous.</p>
+            <p>By acknowledging below, you accept that there are risks involved should you continue to access the content of the email.</p>
+        </div>
+    
+        <div class="buttons">
+            <button id="acknowledgeButton"><b>I Acknowledge</b></button>
+        </div> 
+    
+    </div>
+
+    <script src="detection.js"></script>
+
+</body>
+</html>
