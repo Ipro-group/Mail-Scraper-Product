@@ -27,3 +27,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
     }
 });
+
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "showOverlay",
+        title: "Show Overlay",
+        contexts: ["all"]
+    });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "showOverlay") {
+        // Getting current window's dimensions
+        chrome.windows.getCurrent((currentWindow) => {
+            const width = 1000;
+            const height = 260;
+            const top = Math.round((currentWindow.height - height) / 2);
+            const left = Math.round((currentWindow.width - width) / 2);
+
+            // Open the custom popup window
+            chrome.windows.create({
+                url: chrome.runtime.getURL("detection.html"),
+                type: "popup",
+                width: width,
+                height: height,
+                top: top,
+                left: left
+            });
+        });
+    }
+});
