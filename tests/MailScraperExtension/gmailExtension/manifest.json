@@ -3,7 +3,7 @@
     "name": "Gmail Email Reader",
     "version": "1.0",
     "description": "Reads the content of clicked emails in Gmail and sends them to a Python script.",
-    "permissions": ["scripting", "activeTab", "storage"],
+    "permissions": ["scripting", "activeTab", "storage", "contextMenus"],
     "host_permissions": ["https://mail.google.com/*"],
     "background": {
       "service_worker": "background.js"
