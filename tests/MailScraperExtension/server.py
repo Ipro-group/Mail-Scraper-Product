@@ -22,26 +22,32 @@ def receive_email():
     links = data.get('links', 'No links')
 
     # Print first 500 characters
-    print(f"\nEmail Received:\nSender: {senderName} <{senderEmail}>\nSubject: {subject}\nLinks: {links}\nBody: {body[:500]}...")
+    print(
+        f"\nEmail Received:\nSender: {senderName} <{senderEmail}>\nSubject: {subject}\nLinks: {links}\nBody: {body[:500]}...")
 
     # Dict in format for is_phishing
-    dict_email = {'subject':subject, 
-                  'preheader_text':None, 
-                  'sender_info':senderEmail, 
-                  'recipient_info':None, 
-                  'date_time':None,
-                  'body':body, 
-                  'footer':None}
-    
-    dict_tests = {'url_test':0, 
-                  'sender_info':1, 
-                  'attachment_test':0, 
-                  'grammar_test':0, 
-                  'tone_test':0}
+    dict_email = {'subject': subject,
+                  'preheader_text': None,
+                  'sender_info': senderEmail,
+                  'recipient_info': None,
+                  'date_time': None,
+                  'body': body,
+                  'footer': None}
 
-    processEmail = core.is_phishing(dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+    dict_tests = {'url_test': 0,
+                  'sender_info': 1,
+                  'attachment_test': 1,
+                  'grammar_test': 0,
+                  'tone_test': 0}
+
+    processEmail = core.is_phishing(
+        dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+    attachments = {
+        "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
+    processAttachment = core.is_attachment_unsafe(attachments)
 
     print(processEmail)
+    print(processAttachment)
 
     # Add your processing logic here
     # Example: Save to file or database

@@ -111,10 +111,63 @@ def is_reputable(sender_info):
 
 
 def is_attachment_unsafe(attachments):
-    return 1
+    virus_total = os.getenv('VIRUS_TOTAL_API')
+    if not virus_total:
+        print("VIRUS_TOTAL_API not found in environment.")
+        return 0
+
+    headers = {"x-apikey": virus_total}
+    upload_url = "https://www.virustotal.com/api/v3/files"
+    analysis_url_base = "https://www.virustotal.com/api/v3/analyses/"
+
+    for file_path in attachments:
+        try:
+            with open(file_path, 'rb') as f:
+                files = {'file': f}
+                print(f"Uploading file: {file_path}")
+                upload_response = requests.post(
+                    upload_url, headers=headers, files=files)
+            if upload_response.status_code != 200:
+                print(
+                    f"Error uploading file {file_path}: {upload_response.text}")
+                continue
+
+            analysis_id = upload_response.json().get("data", {}).get("id")
+            if not analysis_id:
+                print(f"No analysis id returned for file {file_path}")
+                continue
+
+            # Poll for analysis completion (up to 10 attempts)
+            analysis_url = analysis_url_base + analysis_id
+            for attempt in range(10):
+                analysis_response = requests.get(analysis_url, headers=headers)
+                if analysis_response.status_code != 200:
+                    print(
+                        f"Error retrieving analysis for {file_path}: {analysis_response.text}")
+                    break
+
+                analysis_data = analysis_response.json()
+                status = analysis_data.get("data", {}).get(
+                    "attributes", {}).get("status")
+                if status == "completed":
+                    stats = analysis_data.get("data", {}).get(
+                        "attributes", {}).get("stats", {})
+                    malicious = stats.get("malicious", 0)
+                    if malicious > 0:
+                        print(
+                            f"File {file_path} is unsafe: {malicious} malicious detections.")
+                        return 1
+                    else:
+                        print(f"File {file_path} appears safe.")
+                    break
+                time.sleep(2)  # wait before polling again
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+            continue
+    return 0
 
 
-def is_url_unsafe(body):
+def is_url_unsafe(links):
     return 1
 
 
@@ -126,8 +179,8 @@ def is_urgent(subject, body, footer):
     return 1
 
 
-test_dict_email = {'subject': None, 'preheader_text': None, 'sender_info': 'hunterleaguecanal@gmail.com',
-                   'recipient_info': None, 'date_time': None, 'body': None, 'footer': None}
-test_dict_tests = {'sender_info': 1}
+# test_dict_email = {'subject': None, 'preheader_text': None, 'sender_info': 'hunterleaguecanal@gmail.com',
+#                   'recipient_info': None, 'date_time': None, 'body': None, 'footer': None}
+# test_dict_tests = {'sender_info': 1}
 
-print(is_phishing(test_dict_email, test_dict_tests))
+# print(is_phishing(test_dict_email, test_dict_tests))
