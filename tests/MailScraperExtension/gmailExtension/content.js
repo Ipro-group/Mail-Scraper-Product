@@ -1,3 +1,9 @@
+//*****************************************#
+//Author: Kaleb Austgen
+//Last Edited: 3/26/25
+//Purpose: Reads clicked on email and sends information to background.js
+//*****************************************#
+
 console.log('Content script loaded');
 
 // Listen for clicks on emails

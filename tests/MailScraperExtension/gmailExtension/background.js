@@ -1,3 +1,9 @@
+//*****************************************#
+//Author: Kaleb Austgen
+//Last Edited: 3/26/25
+//Purpose: Recieves email info from content.js, prepares it and then sends to server.py
+//*****************************************#
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'emailContent') {
         //Debug

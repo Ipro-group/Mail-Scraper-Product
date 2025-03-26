@@ -1,3 +1,9 @@
+#*****************************************#
+#Author: Kaleb Austgen
+#Last Edited: 3/26/25
+#Purpose: Listens for output from background.js for processing and then returns output to user
+#*****************************************#
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import CORS
 import sys
