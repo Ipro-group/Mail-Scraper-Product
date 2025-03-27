@@ -25,9 +25,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 senderEmail: request.senderEmail,
                 links: request.links
             })
-        }).then(response => response.json())
-          .then(data => {
-              console.log('Python server response:', data);
+        }).then(response => response.text())
+          .then(html => {
+              console.log('Python server response:', html);
+
+              // Create popup
+              chrome.windows.create({
+                url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
+                type: 'popup',
+                width: 1000,
+                height: 600
+              })
           }).catch(err => {
               console.error('Error:', err);
           });

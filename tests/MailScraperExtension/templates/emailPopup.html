@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Information</title>
+    <style>
+        /* Simple popup styling */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .popup.active {
+            display: block;
+        }
+        .popup-header {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .popup-body {
+            margin-top: 10px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            background: #ff0000;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Popup Container -->
+    <div id="emailPopup" class="popup">
+        <button class="close-btn" onclick="closePopup()">X</button>
+        <div class="popup-header">
+            New Email Received
+        </div>
+        <div class="popup-body">
+            <strong>Subject:</strong> <span>{{ subject }}</span><br>
+            <strong>Sender Name:</strong> <span>{{ senderName }}</span><br>
+            <strong>Sender Email:</strong> <span>{{ senderEmail }}</span><br>
+            <strong>Body:</strong> <span>{{ body }}</span><br>
+            <strong>Links:</strong> <span>{{ links }}</span><br>
+        </div>
+    </div>
+
+    <script>
+        // Show the popup once the page is loaded
+        window.onload = function() {
+            const popup = document.getElementById('emailPopup');
+            popup.classList.add('active'); // Activate the popup
+        };
+
+        // Close the popup
+        function closePopup() {
+            const popup = document.getElementById('emailPopup');
+            popup.classList.remove('active');
+        }
+    </script>
+
+</body>
+</html>

@@ -4,7 +4,7 @@
 #Purpose: Listens for output from background.js for processing and then returns output to user
 #*****************************************#
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS  # Import CORS
 import sys
 from email_analysis import core
@@ -58,7 +58,14 @@ def receive_email():
     # Add your processing logic here
     # Example: Save to file or database
 
-    return jsonify({"status": "success", "message": "Email processed successfully!"})
+    # Render an HTML template to pass on the data for a popup
+    return render_template('emailPopup.html',
+                         subject=subject,
+                         body=body,
+                         senderName=senderName,
+                         senderEmail=senderEmail,
+                         links=links)
+    #return jsonify({"status": "success", "message": "Email processed successfully!"})
 
 
 if __name__ == '__main__':
