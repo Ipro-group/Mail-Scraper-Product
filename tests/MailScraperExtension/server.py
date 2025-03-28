@@ -54,11 +54,18 @@ def receive_email():
                   'grammar_test': 0,
                   'tone_test': 0}
 
-    processEmail = core.is_phishing(
-        dict_email=dict_email, dict_tests=dict_tests, attachments=None)
-    
-    attachments = data.get('attachments', [])
-   
+    # Check to see if is_phishing is iterable
+    try:
+        processEmail, breachInfo, breachList = core.is_phishing(
+            dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+    except TypeError:
+        processEmail= core.is_phishing(
+            dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+        breachInfo="None"
+        breachList="None"
+        
+    attachments = {
+        "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
     processAttachment = core.is_attachment_unsafe(attachments)
 
     print(processEmail)
@@ -70,11 +77,11 @@ def receive_email():
     # If a vulnerability was found render an HTML template to pass on the data for a popup
     if processEmail==1 or processAttachment==1: 
         return render_template('emailPopup.html',
-                         subject=subject,
-                         body=body,
                          senderName=senderName,
                          senderEmail=senderEmail,
-                         links=links)
+                         links=links,
+                         breachInfo=breachInfo,
+                         breachList=breachList,)
     
     else:
         return jsonify({"status": "success", "message": "Email processed successfully!"})

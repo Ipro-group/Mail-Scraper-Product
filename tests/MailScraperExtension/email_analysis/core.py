@@ -34,12 +34,17 @@ def is_phishing(dict_email, dict_tests, attachments=None):
     # -- is_reputable(): checks if sender email has reputable domain from database. Checks both a scammer email list and a reputable domain table
     if sender_info != None and dict_tests['sender_info'] == 1:
         try:
-            is_phishing += is_reputable(sender_info)
+            result = is_reputable(sender_info)
+            if result[0] == 0:
+                return result[0]
+            else:
+                is_phishing += result[0]
+                breachInfo = result[1]
+                breachList = result[2]
+                return is_phishing, breachInfo, breachList
+
         except TypeError as e:
             print("Did not receive an int as response at is_reputable")
-
-    return is_phishing
-
 
 def clean_email(email):
     email = email.strip()
@@ -94,18 +99,23 @@ def is_reputable(sender_info):
 
     if response.status_code == 200:
         breaches = response.json()
-        print(
-            f"WARNING: {cleaned_email} has been found in {len(breaches)} breaches.")
+        breachInfo = f"WARNING: {cleaned_email} has been found in {len(breaches)} breaches."
+        print(breachInfo)
+        breachList = []
         for breach in breaches:
+            breachString = f"- {breach.get('Name', 'Unknown')} ({breach.get('BreachDate', 'No Date')}) - {breach.get('Description', 'No Description')}"
+            breachList.append(breachString)
             print(f"- {breach.get('Name', 'Unknown')} ({breach.get('BreachDate', 'No Date')}) - {breach.get('Description', 'No Description')}")
             test_results = test_results + 0.5
     elif response.status_code == 404:
+        breachInfo = f"{cleaned_email} is safe (no known breaches)." 
         print(f"{cleaned_email} is safe (no known breaches).")
     else:
+        breachInfo = f"Error: {response.status_code}, {response.text}"
         print(f"Error: {response.status_code}, {response.text}")
 
     if test_results >= 0.5:
-        return 1
+        return 1, breachInfo, breachList
     else:
         return 0
 
