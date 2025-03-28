@@ -46,8 +46,16 @@ def receive_email():
                   'grammar_test': 0,
                   'tone_test': 0}
 
-    processEmail, breachInfo, breachList = core.is_phishing(
-        dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+    # Check to see if is_phishing is iterable
+    try:
+        processEmail, breachInfo, breachList = core.is_phishing(
+            dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+    except TypeError:
+        processEmail= core.is_phishing(
+            dict_email=dict_email, dict_tests=dict_tests, attachments=None)
+        breachInfo="None"
+        breachList="None"
+        
     attachments = {
         "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
     processAttachment = core.is_attachment_unsafe(attachments)

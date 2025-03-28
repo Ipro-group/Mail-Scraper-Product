@@ -35,15 +35,16 @@ def is_phishing(dict_email, dict_tests, attachments=None):
     if sender_info != None and dict_tests['sender_info'] == 1:
         try:
             result = is_reputable(sender_info)
-            is_phishing += result[0]
-            breachInfo = result[1]
-            breachList = result[2]
+            if result[0] == 0:
+                return result[0]
+            else:
+                is_phishing += result[0]
+                breachInfo = result[1]
+                breachList = result[2]
+                return is_phishing, breachInfo, breachList
 
         except TypeError as e:
             print("Did not receive an int as response at is_reputable")
-
-    return is_phishing, breachInfo, breachList
-
 
 def clean_email(email):
     email = email.strip()
@@ -107,10 +108,10 @@ def is_reputable(sender_info):
             print(f"- {breach.get('Name', 'Unknown')} ({breach.get('BreachDate', 'No Date')}) - {breach.get('Description', 'No Description')}")
             test_results = test_results + 0.5
     elif response.status_code == 404:
-        breachString = f"{cleaned_email} is safe (no known breaches)." 
+        breachInfo = f"{cleaned_email} is safe (no known breaches)." 
         print(f"{cleaned_email} is safe (no known breaches).")
     else:
-        breachString = f"Error: {response.status_code}, {response.text}"
+        breachInfo = f"Error: {response.status_code}, {response.text}"
         print(f"Error: {response.status_code}, {response.text}")
 
     if test_results >= 0.5:
