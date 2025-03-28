@@ -7,10 +7,18 @@
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS  # Import CORS
 import sys
+import os
 from email_analysis import core
 sys.stdout.reconfigure(encoding='utf-8')
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routs
+CORS(app)  # Enable CORS for all routes
+
+
+# Set the folder where you want to save uploaded attachments
+UPLOAD_FOLDER = 'attachments'  # You can change this to any valid directory
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Make sure the folder exists
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 
 @app.route('/email', methods=['POST'])
@@ -48,8 +56,9 @@ def receive_email():
 
     processEmail = core.is_phishing(
         dict_email=dict_email, dict_tests=dict_tests, attachments=None)
-    attachments = {
-        "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
+    
+    attachments = data.get('attachments', [])
+   
     processAttachment = core.is_attachment_unsafe(attachments)
 
     print(processEmail)
@@ -71,5 +80,37 @@ def receive_email():
         return jsonify({"status": "success", "message": "Email processed successfully!"})
 
 
+# route for handling attachments
+@app.route('/attachments', methods=['POST'])
+def receive_attachment():
+    # Check if the request contains files
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    # If the user doesn't select a file, the filename will be empty
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    # Validate file type (optional, you can adjust this based on what you need)
+    allowed_extensions = {'pdf', 'docx', 'txt', 'jpg', 'png'}
+    if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({'error': 'File type not allowed'}), 400
+
+    try:
+        # Generate a secure filename for the uploaded file
+        filename = os.path.basename(file.filename)  # Avoid path traversal issues
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        # If needed, you can process the file here (e.g., analyze the contents)
+
+        return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(port=5000)
+
