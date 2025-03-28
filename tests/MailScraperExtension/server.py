@@ -58,14 +58,17 @@ def receive_email():
     # Add your processing logic here
     # Example: Save to file or database
 
-    # Render an HTML template to pass on the data for a popup
-    return render_template('emailPopup.html',
+    # If a vulnerability was found render an HTML template to pass on the data for a popup
+    if processEmail==1 or processAttachment==1: 
+        return render_template('emailPopup.html',
                          subject=subject,
                          body=body,
                          senderName=senderName,
                          senderEmail=senderEmail,
                          links=links)
-    #return jsonify({"status": "success", "message": "Email processed successfully!"})
+    
+    else:
+        return jsonify({"status": "success", "message": "Email processed successfully!"})
 
 
 if __name__ == '__main__':

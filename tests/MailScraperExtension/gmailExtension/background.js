@@ -25,17 +25,49 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 senderEmail: request.senderEmail,
                 links: request.links
             })
-        }).then(response => response.text())
-          .then(html => {
-              console.log('Python server response:', html);
+        }).then(response => {
+            // Check Content-Type of the response
+            const contentType = response.headers.get("Content-Type");
+
+            if (contentType && contentType.includes("application/json")) {
+                // If the response is JSON
+                return response.json();
+            } else if (contentType && contentType.includes("text/html")) {
+                // If the response is HTML
+                return response.text();
+            } else {
+                // Handle unexpected response type
+                throw new Error('Unexpected response type');
+                }
+            })
+
+          .then(data => {
+
+            // If it is HTML then create the template
+            if (typeof data === 'string') {
+              console.log('Python server response:', data);
 
               // Create popup
               chrome.windows.create({
-                url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
+                url: 'data:text/html;charset=utf-8,' + encodeURIComponent(data),
                 type: 'popup',
                 width: 1000,
                 height: 600
-              })
+              });
+
+            // If it is json then write to the console log
+            } else {
+                // JSON response
+                console.log('FLASK retruned JSON:', data);
+
+                // Handle JSON response
+                if (data.status === 'success') {
+                    console.log(data.message);
+                } else {
+                    console.error('Error:', data.message);
+                }
+            }
+
           }).catch(err => {
               console.error('Error:', err);
           });
