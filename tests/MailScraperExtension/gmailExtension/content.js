@@ -214,16 +214,21 @@ function showModal(warningMessage) {
     modal.style.backgroundColor = '#f8d7da';
     modal.style.color = '#721c24';
     modal.style.padding = '20px';
-    modal.style.border = '1px solid #f5c6cb';
+    modal.style.border = '3px dashed #ff0019';
     modal.style.textAlign = 'center';
     modal.style.borderRadius = '5px';
     modal.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
-    modal.style.width = '300px';
+    modal.style.width = '50%';
     
     modal.innerHTML = warningMessage;
     
     const closeButton = document.createElement('button');
-    closeButton.textContent = 'Close';
+    closeButton.style.margin = '20px auto 0'; // Center the button horizontally
+    closeButton.style.width = '30%';
+    closeButton.textContent = 'I have been informed and understand the risks';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.marginTop = '20px'; 
+    closeButton.style.display = 'block'; 
     closeButton.onclick = function() {
         document.body.removeChild(modalBackground); // Close the modal
     };
