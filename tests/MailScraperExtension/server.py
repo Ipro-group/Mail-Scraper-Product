@@ -8,6 +8,7 @@ from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS  # Import CORS
 import sys
 import os
+import magic
 from email_analysis import core
 from werkzeug.utils import secure_filename
 sys.stdout.reconfigure(encoding='utf-8')
@@ -20,6 +21,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Make sure the folder exists
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
+# email route
 @app.route('/email', methods=['POST'])
 def receive_email():
 
@@ -85,7 +87,15 @@ def receive_email():
     else:
         return jsonify({"status": "success", "message": "Email processed successfully!"})
 
-# Route for handling attachments
+
+
+# Function to check MIME type based on file's magic number (signature)
+def get_mime_type(file):
+    # Use python-magic to detect MIME type based on file's signature
+    mime = magic.Magic(mime=True)
+    return mime.from_buffer(file.read())
+
+
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
     # Check if the request contains files
@@ -101,6 +111,31 @@ def receive_attachment():
     try:
         # Generate a secure filename for the uploaded file to avoid path traversal issues
         filename = secure_filename(file.filename)
+
+        # Check file MIME type using the magic library
+        file.seek(0)  # Rewind the file to start before checking MIME type
+        mime_type = get_mime_type(file)
+
+        # Define the allowed MIME types for your application
+        allowed_mime_types = [
+            'application/pdf',  # PDF files
+            'application/msword',  # DOC files
+            'image/jpeg',  # JPG images
+            'image/png',  # PNG images
+            'application/zip',  # ZIP files
+            'text/plain',  # TXT files
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  # DOCX files
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  # XLSX files
+            'text/html',  # HTML files
+            'text/csv',  # CSV files
+        ]
+
+        # Check if the MIME type is allowed
+        if mime_type not in allowed_mime_types:
+            return jsonify({'error': f'File type not allowed. Received: {mime_type}'}), 400
+
+        # Rewind the file after MIME type check
+        file.seek(0)
 
         # Create the file path to save the file
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
