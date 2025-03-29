@@ -147,8 +147,11 @@ def receive_attachment():
         # Save the file to the server
         file.save(file_path)
 
+        # call function in core.py
+        processAttachment= core.is_attachment_unsafe([file_path])
+
         # Return a success response with the file path
-        return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
+        return jsonify({'message': 'File uploaded successfully', 'file_path': file_path, 'attachment_unsafe': processAttachment}), 200
 
     except Exception as e:
         # Return a failure response if something went wrong
