@@ -4,6 +4,7 @@
 //Purpose: Recieves email info from content.js, prepares it and then sends to server.py
 //*****************************************#
 
+console.log('Background worker loaded')
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'emailContent') {
         //Debug
@@ -25,7 +26,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 senderEmail: request.senderEmail,
                 links: request.links
             })
-        }).then(response => {
+        })
+        /*.then(response => {
             // Check Content-Type of the response
             const contentType = response.headers.get("Content-Type");
 
@@ -68,7 +70,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }
             }
 
-          }).catch(err => {
+          })*/
+         .then(response => response.json())
+         .then(data => {
+            console.log("Flask server response:", data)
+            // If flask showWarning = true, send message to content script
+            if (data.showWarning) {
+                console.log('Showing warning: true')
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    chrome.tabs.sendMessage(tabs[0].id, { 
+                        showWarning: true,
+                        warningMessage: data.message
+                    });
+                });
+            }
+         })
+            .catch(err => {
               console.error('Error:', err);
           });
     }

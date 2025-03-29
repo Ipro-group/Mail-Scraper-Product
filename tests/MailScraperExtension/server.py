@@ -77,15 +77,27 @@ def receive_email():
 
     # If a vulnerability was found render an HTML template to pass on the data for a popup
     if processEmail == 1 or processAttachment == 1: 
-        return render_template('emailPopup.html',
+        showWarning = True
+        '''return render_template('emailPopup.html', showWarning=showWarning,
                          senderName=senderName,
                          senderEmail=senderEmail,
                          links=links,
                          breachInfo=breachInfo,
-                         breachList=breachList,)
-    
+                         breachList=breachList,)'''
+        message = f'''
+            <p><strong>Warning!</strong> The email you clicked on may be malicious</p>
+            <p>{breachInfo}</p>
+            <p>{breachList}</p>
+        '''
     else:
-        return jsonify({"status": "success", "message": "Email processed successfully!"})
+        showWarning = False
+        message = None
+    print(showWarning)
+    return jsonify({
+        "status": "success",
+        "showWarning": showWarning,
+        "message": message
+    })
 
 
 

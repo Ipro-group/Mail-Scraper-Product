@@ -182,3 +182,53 @@ function getFileExtensionFromUrl(url) {
     }
     return ''; // Return empty if no valid extension
 }
+
+// Listen for warning message from background script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.warningMessage) {
+        const warningMessage = request.warningMessage;
+
+        console.log('Received message to show warning modal', warningMessage)
+        // Show modal if showWarning is true
+        showModal(warningMessage);
+    }
+});
+
+// Function to create and show the modal (on Gmail page)
+function showModal(warningMessage) {
+
+    // Create the modal elements
+    const modalBackground = document.createElement('div');
+    modalBackground.style.position = 'fixed';
+    modalBackground.style.top = '0';
+    modalBackground.style.left = '0';
+    modalBackground.style.width = '100%';
+    modalBackground.style.height = '100%';
+    modalBackground.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    modalBackground.style.zIndex = '9999';
+    modalBackground.style.display = 'flex';
+    modalBackground.style.justifyContent = 'center';
+    modalBackground.style.alignItems = 'center';
+
+    const modal = document.createElement('div');
+    modal.style.backgroundColor = '#f8d7da';
+    modal.style.color = '#721c24';
+    modal.style.padding = '20px';
+    modal.style.border = '1px solid #f5c6cb';
+    modal.style.textAlign = 'center';
+    modal.style.borderRadius = '5px';
+    modal.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
+    modal.style.width = '300px';
+    
+    modal.innerHTML = warningMessage;
+    
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Close';
+    closeButton.onclick = function() {
+        document.body.removeChild(modalBackground); // Close the modal
+    };
+
+    modal.appendChild(closeButton);
+    modalBackground.appendChild(modal);
+    document.body.appendChild(modalBackground); // Append the modal to the page
+}
