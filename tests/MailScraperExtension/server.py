@@ -9,16 +9,15 @@ from flask_cors import CORS  # Import CORS
 import sys
 import os
 from email_analysis import core
+from werkzeug.utils import secure_filename
 sys.stdout.reconfigure(encoding='utf-8')
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-
 
 # Set the folder where you want to save uploaded attachments
 UPLOAD_FOLDER = 'attachments'  # You can change this to any valid directory
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Make sure the folder exists
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 
 @app.route('/email', methods=['POST'])
@@ -59,10 +58,10 @@ def receive_email():
         processEmail, breachInfo, breachList = core.is_phishing(
             dict_email=dict_email, dict_tests=dict_tests, attachments=None)
     except TypeError:
-        processEmail= core.is_phishing(
+        processEmail = core.is_phishing(
             dict_email=dict_email, dict_tests=dict_tests, attachments=None)
-        breachInfo="None"
-        breachList="None"
+        breachInfo = "None"
+        breachList = "None"
         
     attachments = {
         "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
@@ -75,7 +74,7 @@ def receive_email():
     # Example: Save to file or database
 
     # If a vulnerability was found render an HTML template to pass on the data for a popup
-    if processEmail==1 or processAttachment==1: 
+    if processEmail == 1 or processAttachment == 1: 
         return render_template('emailPopup.html',
                          senderName=senderName,
                          senderEmail=senderEmail,
@@ -86,8 +85,7 @@ def receive_email():
     else:
         return jsonify({"status": "success", "message": "Email processed successfully!"})
 
-
-# route for handling attachments
+# Route for handling attachments
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
     # Check if the request contains files
@@ -100,24 +98,25 @@ def receive_attachment():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    # Validate file type (optional, you can adjust this based on what you need)
-    allowed_extensions = {'pdf', 'docx', 'txt', 'jpg', 'png'}
-    if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return jsonify({'error': 'File type not allowed'}), 400
-
     try:
-        # Generate a secure filename for the uploaded file
-        filename = os.path.basename(file.filename)  # Avoid path traversal issues
+        # Generate a secure filename for the uploaded file to avoid path traversal issues
+        filename = secure_filename(file.filename)
+
+        # Create the file path to save the file
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        # Save the file to the server
         file.save(file_path)
 
-        # If needed, you can process the file here (e.g., analyze the contents)
-
+        # Return a success response with the file path
         return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
 
     except Exception as e:
+        # Return a failure response if something went wrong
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(port=5000)
+
 

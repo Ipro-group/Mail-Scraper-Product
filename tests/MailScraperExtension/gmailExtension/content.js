@@ -95,45 +95,77 @@ document.addEventListener('click', (event) => {
                     links: links,
                     attachments: attachments // Send attachments data to server
                 });
-            
-                // Send attachments to the server
-                attachments.forEach((attachment) => {
-                    console.log('Downloading attachment:', attachment.name, 'from', attachment.url);
+                
+                // Function to get the MIME type based on the file extension
+                function getMimeType(fileName) {
+                    const extension = fileName.toLowerCase().split('.').pop();
+                    switch (extension) {
+                        case 'pdf':
+                            return 'application/pdf';
+                        case 'docx':
+                            return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                        case 'txt':
+                            return 'text/plain';
+                        case 'jpg':
+                        case 'jpeg':
+                            return 'image/jpeg';
+                        case 'png':
+                            return 'image/png';
+                        case 'gif':
+                            return 'image/gif';
+                        case 'xlsx':
+                            return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                        case 'zip':
+                                    return 'application/zip';
+                        case 'html':
+                            return 'text/html';
+                        case 'csv':
+                            return 'text/csv';
+                        default:
+                             return 'application/octet-stream'; // Default for unknown file types
+                    }
+                }
 
-                    // Fetch the attachment from the URL
-                    fetch(attachment.url)
+                 // Send attachments to the server
+                 attachments.forEach((attachment) => {
+                     console.log('Downloading attachment:', attachment.name, 'from', attachment.url);
+
+                     // Fetch the attachment from the URL
+                     fetch(attachment.url)
                         .then(response => {
                             if (response.ok) {
                                 return response.blob(); // Get blob data of the attachment
                             } else {
                                 throw new Error('Failed to download attachment');
                             }
-                    })
-                    .then(blob => {
-                        // Create FormData to send the attachment to your Python server
-                        const formData = new FormData();
-                        formData.append('file', blob, attachment.name); // Append the file with its name
+                        })
+                        .then(blob => {
+                             // Dynamically set the MIME type based on the file extension
+                             const mimeType = getMimeType(attachment.name);
 
-                        // Send the attachment to the server
-                        fetch('http://localhost:5000/attachments', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Attachment sent successfully:', data);
-                        })
+                            // Create FormData to send the attachment to your Python server
+                            const formData = new FormData();
+                            formData.append('file', blob, attachment.name); // Attach the file to the form data
+
+                            // Send the attachment to the server
+                            fetch('http://localhost:5000/attachments', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log('Attachment sent successfully:', data);
+                            })
+                            .catch(error => {
+                                console.error('Error sending attachment:', error);
+                            });
+                       })
                         .catch(error => {
-                            console.error('Error sending attachment:', error);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error downloading attachment:', error);
+                            console.error('Error downloading attachment:', error);
                     });
-            });
+                });
 
-
-            }
+             }
         }, 500); // Delay ensures content is fully loaded
     }
 });
