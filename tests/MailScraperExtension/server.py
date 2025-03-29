@@ -88,13 +88,24 @@ def receive_email():
         return jsonify({"status": "success", "message": "Email processed successfully!"})
 
 
+# Define the allowed MIME types and their corresponding extensions
+mime_to_extension = {
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'application/zip': 'zip',
+    'text/plain': 'txt',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'text/html': 'html',
+    'text/csv': 'csv'
+}
 
 # Function to check MIME type based on file's magic number (signature)
 def get_mime_type(file):
-    # Use python-magic to detect MIME type based on file's signature
     mime = magic.Magic(mime=True)
     return mime.from_buffer(file.read())
-
 
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
@@ -112,27 +123,20 @@ def receive_attachment():
         # Generate a secure filename for the uploaded file to avoid path traversal issues
         filename = secure_filename(file.filename)
 
-        # Check file MIME type using the magic library
+        # Check MIME type
         file.seek(0)  # Rewind the file to start before checking MIME type
         mime_type = get_mime_type(file)
 
-        # Define the allowed MIME types for your application
-        allowed_mime_types = [
-            'application/pdf',  # PDF files
-            'application/msword',  # DOC files
-            'image/jpeg',  # JPG images
-            'image/png',  # PNG images
-            'application/zip',  # ZIP files
-            'text/plain',  # TXT files
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  # DOCX files
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  # XLSX files
-            'text/html',  # HTML files
-            'text/csv',  # CSV files
-        ]
-
         # Check if the MIME type is allowed
-        if mime_type not in allowed_mime_types:
+        if mime_type not in mime_to_extension:
             return jsonify({'error': f'File type not allowed. Received: {mime_type}'}), 400
+
+        # Get the appropriate file extension
+        file_extension = mime_to_extension[mime_type]
+
+        # If the filename doesn't already have the correct extension, add it
+        if not filename.endswith(file_extension):
+            filename = f"{os.path.splitext(filename)[0]}.{file_extension}"
 
         # Rewind the file after MIME type check
         file.seek(0)
