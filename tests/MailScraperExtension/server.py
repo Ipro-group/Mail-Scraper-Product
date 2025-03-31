@@ -1,8 +1,8 @@
-#*****************************************#
-#Author: Kaleb Austgen
-#Last Edited: 3/26/25
-#Purpose: Listens for output from background.js for processing and then returns output to user
-#*****************************************#
+# *****************************************#
+# Author: Kaleb Austgen
+# Last Edited: 3/26/25
+# Purpose: Listens for output from background.js for processing and then returns output to user
+# *****************************************#
 
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS  # Import CORS
@@ -64,19 +64,26 @@ def receive_email():
             dict_email=dict_email, dict_tests=dict_tests, attachments=None)
         breachInfo = "None"
         breachList = "None"
-        
-    attachments = {
-        "tests\MailScraperExtension\email_analysis\attachments\Relational Algebra Practice Questions.pdf"}
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    attachment_path = os.path.join(
+        BASE_DIR, "email_analysis", "attachments", "test.pdf")
+    attachments = {attachment_path}
+
     processAttachment = core.is_attachment_unsafe(attachments)
+
+    processed_urls = {"http://119.189.200.56:53768/bin.sh"}
+    processURL = core.is_url_unsafe(processed_urls)
 
     print(processEmail)
     print(processAttachment)
+    print(processURL)
 
     # Add your processing logic here
     # Example: Save to file or database
 
     # If a vulnerability was found render an HTML template to pass on the data for a popup
-    if processEmail == 1 or processAttachment == 1: 
+    if processEmail == 1 or processAttachment == 1 or processURL == 1:
         showWarning = True
         '''return render_template('emailPopup.html', showWarning=showWarning,
                          senderName=senderName,
@@ -115,9 +122,12 @@ mime_to_extension = {
 }
 
 # Function to check MIME type based on file's magic number (signature)
+
+
 def get_mime_type(file):
     mime = magic.Magic(mime=True)
     return mime.from_buffer(file.read())
+
 
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
@@ -160,7 +170,7 @@ def receive_attachment():
         file.save(file_path)
 
         # call function in core.py
-        processAttachment= core.is_attachment_unsafe([file_path])
+        processAttachment = core.is_attachment_unsafe([file_path])
 
         # Return a success response with the file path
         return jsonify({'message': 'File uploaded successfully', 'file_path': file_path, 'attachment_unsafe': processAttachment}), 200
@@ -172,5 +182,3 @@ def receive_attachment():
 
 if __name__ == '__main__':
     app.run(port=5000)
-
-

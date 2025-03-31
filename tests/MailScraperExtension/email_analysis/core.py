@@ -4,7 +4,10 @@ import requests
 from dotenv import load_dotenv
 import os
 import unicodedata
+import base64
+import time
 load_dotenv()
+VIRUS_TOTAL_KEY = os.getenv("VIRUS_TOTAL_KEY")
 # Main phishing check function
 # Args:
 #       dict_email: type dict, expected format {'subject': '__', 'preheader_text':'__',
@@ -46,6 +49,7 @@ def is_phishing(dict_email, dict_tests, attachments=None):
         except TypeError as e:
             print("Did not receive an int as response at is_reputable")
 
+
 def clean_email(email):
     email = email.strip()
     email = "".join(ch for ch in email if unicodedata.category(ch)[0] != "C")
@@ -53,12 +57,14 @@ def clean_email(email):
 
 
 def is_reputable(sender_info):
-    # This function uses SPAMHAUS API. It sends the sender email address to their DBL and uses certain IP addresses to specify what they were blacklisted as
-    # Function returns 0 if domain was not found in DBL and 1 if it was.
-
-    # cumulative sum from SPAMHAUS test, and HIBP tests. If one of the tests comes back positive (phishing), the function will return 1.
-    # each positive test is worth 0.5
+    # This function uses SPAMHAUS API and HIBP API.
+    # It returns a tuple: (result, breachInfo, breachList)
+    #   result: 0 if safe, 1 if suspicious/breached
+    #   breachInfo: string with breach details (or None)
+    #   breachList: list of individual breach entries (or empty list)
     test_results = 0
+    breachInfo = None
+    breachList = []
 
     SPAMHAUS_CODES = {
         "127.0.1.2": "Spam domain",
@@ -69,21 +75,18 @@ def is_reputable(sender_info):
         "127.0.1.103": "Abused legit domain (malware)",
         "127.0.1.104": "Abused legit domain (phishing)"
     }
-    domain = sender_info.strip().split(
-        '@')[-1] if '@' in sender_info else None  # retrieves domain from email
-
+    domain = sender_info.strip().split('@')[-1] if '@' in sender_info else None
     print("extracted domain: ", domain)
     try:
-        lookup = f"{domain}.dbl.spamhaus.org"  # generates lookup host link
-        # the result will be one of the ip addresses from SPAMHAUS_CODES or an error will be raised if domain not in DBL
-        result = socket.gethostbyname(lookup)
-
-        if result in SPAMHAUS_CODES:
-            print(f"Domain {domain} is blacklisted: {SPAMHAUS_CODES[result]}")
-            test_results = test_results + 0.5
+        lookup = f"{domain}.dbl.spamhaus.org"
+        result_ip = socket.gethostbyname(lookup)
+        if result_ip in SPAMHAUS_CODES:
+            print(
+                f"Domain {domain} is blacklisted: {SPAMHAUS_CODES[result_ip]}")
+            test_results += 0.5
         else:
             print(
-                f"Domain {domain} is blacklisted but unknown category ({result})")
+                f"Domain {domain} is blacklisted but unknown category ({result_ip})")
     except socket.gaierror as e:
         print(f"Domain {domain} lookup failed: {e}")
 
@@ -94,34 +97,32 @@ def is_reputable(sender_info):
     }
     cleaned_email = clean_email(sender_info)
     url = f"https://haveibeenpwned.com/api/v3/breachedaccount/{cleaned_email}"
-
     response = requests.get(url, headers=HIBP_HEADER)
 
     if response.status_code == 200:
         breaches = response.json()
         breachInfo = f"WARNING: {cleaned_email} has been found in {len(breaches)} breaches."
         print(breachInfo)
-        breachList = []
         for breach in breaches:
             breachString = f"- {breach.get('Name', 'Unknown')} ({breach.get('BreachDate', 'No Date')}) - {breach.get('Description', 'No Description')}"
             breachList.append(breachString)
-            print(f"- {breach.get('Name', 'Unknown')} ({breach.get('BreachDate', 'No Date')}) - {breach.get('Description', 'No Description')}")
-            test_results = test_results + 0.5
+            print(breachString)
+            test_results += 0.5
     elif response.status_code == 404:
-        breachInfo = f"{cleaned_email} is safe (no known breaches)." 
-        print(f"{cleaned_email} is safe (no known breaches).")
+        breachInfo = f"{cleaned_email} is safe (no known breaches)."
+        print(breachInfo)
     else:
         breachInfo = f"Error: {response.status_code}, {response.text}"
-        print(f"Error: {response.status_code}, {response.text}")
+        print(breachInfo)
 
     if test_results >= 0.5:
-        return 1, breachInfo, breachList
+        return (1, breachInfo, breachList)
     else:
-        return 0
+        return (0, breachInfo, breachList)
 
 
 def is_attachment_unsafe(attachments):
-    virus_total = os.getenv('VIRUS_TOTAL_API')
+    virus_total = VIRUS_TOTAL_KEY
     if not virus_total:
         print("VIRUS_TOTAL_API not found in environment.")
         return 0
@@ -178,7 +179,44 @@ def is_attachment_unsafe(attachments):
 
 
 def is_url_unsafe(links):
-    return 1
+    virus_total = VIRUS_TOTAL_KEY
+    if not virus_total:
+        print("VIRUS_TOTAL_API not found in environment.")
+        return 0
+
+    headers = {"x-apikey": virus_total}
+    url_api_base = "https://www.virustotal.com/api/v3/urls/"
+
+    for link in links:
+        try:
+            # Encode the URL in base64 (urlsafe) and remove any trailing '='
+            encoded_url = base64.urlsafe_b64encode(
+                link.encode()).decode().strip("=")
+            lookup_url = url_api_base + encoded_url
+            print(f"Checking URL: {link} (encoded: {encoded_url})")
+
+            response = requests.get(lookup_url, headers=headers)
+            if response.status_code != 200:
+                print(
+                    f"Error retrieving analysis for URL {link}: {response.text}")
+                continue
+
+            analysis_data = response.json()
+            # The URL analysis data is under 'last_analysis_stats'
+            stats = analysis_data.get("data", {}).get(
+                "attributes", {}).get("last_analysis_stats", {})
+            malicious = stats.get("malicious", 0)
+            if malicious > 0:
+                print(
+                    f"URL {link} is marked unsafe with {malicious} malicious detections.")
+                return 1
+            else:
+                print(f"URL {link} appears safe.")
+        except Exception as e:
+            print(f"Error processing URL {link}: {e}")
+            continue
+
+    return 0
 
 
 def is_grammar_bad(subject, body, footer):
