@@ -57,17 +57,17 @@ def receive_email():
 
     # Check to see if is_phishing is iterable
     try:
-        processEmail, breachInfo, breachList = core.is_phishing(
+        processEmail, breachInfo = core.is_phishing(
             dict_email=dict_email, dict_tests=dict_tests, attachments=None)
     except TypeError:
         processEmail = core.is_phishing(
             dict_email=dict_email, dict_tests=dict_tests, attachments=None)
         breachInfo = "None"
-        breachList = "None"
+        #breachList = "None"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     attachment_path = os.path.join(
-        BASE_DIR, "email_analysis", "attachments", "test.pdf")
+        BASE_DIR, "email_analysis", "attachments")
     attachments = {attachment_path}
 
     processAttachment = core.is_attachment_unsafe(attachments)
@@ -94,7 +94,6 @@ def receive_email():
         message = f'''
             <p><strong>Warning!</strong> The email you clicked on may be malicious</p>
             <p>{breachInfo}</p>
-            <p>{breachList}</p>
             <p>{processAttachment[1]}</p>
             <p>{processURL[1]}</p>
         '''

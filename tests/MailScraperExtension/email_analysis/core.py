@@ -43,8 +43,8 @@ def is_phishing(dict_email, dict_tests, attachments=None):
             else:
                 is_phishing += result[0]
                 breachInfo = result[1]
-                breachList = result[2]
-                return is_phishing, breachInfo, breachList
+                #breachList = result[2]
+                return is_phishing, breachInfo
 
         except TypeError as e:
             print("Did not receive an int as response at is_reputable")
@@ -116,9 +116,9 @@ def is_reputable(sender_info):
         print(breachInfo)
 
     if test_results >= 0.5:
-        return (1, breachInfo, breachList)
+        return (1, breachInfo)
     else:
-        return (0, breachInfo, breachList)
+        return (0, breachInfo)
 
 
 def is_attachment_unsafe(attachments):
