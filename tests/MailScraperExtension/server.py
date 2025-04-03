@@ -95,7 +95,7 @@ def receive_email():
             <p><strong>Warning!</strong> The email you clicked on may be malicious</p>
             <p>{breachInfo}</p>
             <p>{processAttachment[1]}</p>
-            <p>{processURL[1]}</p>
+            <p>{processURL[1:]}</p>
         '''
     else:
         showWarning = False

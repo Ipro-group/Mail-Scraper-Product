@@ -7,8 +7,7 @@
       "scripting", 
       "activeTab", 
       "storage", 
-      "contextMenus",
-      "https:mail.google.com/*"],
+      "contextMenus"],
     "host_permissions": [
       "https://mail.google.com/*"],
     "background": {

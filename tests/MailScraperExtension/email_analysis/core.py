@@ -183,6 +183,7 @@ def is_attachment_unsafe(attachments):
 def is_url_unsafe(links):
     virus_total = VIRUS_TOTAL_KEY
     safeList = [0, "Links are Safe"]
+    unSafeList = []
     if not virus_total:
         print("VIRUS_TOTAL_API not found in environment.")
         return safeList
@@ -216,15 +217,18 @@ def is_url_unsafe(links):
             if malicious > 0:
                 unSafe = f"URL {link} is marked unsafe with {malicious} malicious detections."
                 print(unSafe)
-                unSafeList = [1, unSafe]
-                return unSafeList
+                unSafeList.append(unSafe)
             else:
                 print(f"URL {link} appears safe.")
         except Exception as e:
             print(f"Error processing URL {link}: {e}")
             continue
-
-    return safeList
+    
+    if len(unSafeList) > 0:
+        unSafeList.insert(0, 1)
+        return unSafeList
+    else:
+        return safeList
 
 
 def is_grammar_bad(subject, body, footer):
