@@ -1,6 +1,6 @@
 # *****************************************#
 # Author: Kaleb Austgen
-# Last Edited: 3/26/25
+# Last Edited: 4/2/25
 # Purpose: Listens for output from background.js for processing and then returns output to user
 # *****************************************#
 
@@ -49,7 +49,7 @@ def receive_email():
                   'body': body,
                   'footer': None}
 
-    dict_tests = {'url_test': 0,
+    dict_tests = {'url_test': 1,
                   'sender_info': 1,
                   'attachment_test': 1,
                   'grammar_test': 0,
@@ -73,7 +73,7 @@ def receive_email():
     processAttachment = core.is_attachment_unsafe(attachments)
 
     processed_urls = {"http://119.189.200.56:53768/bin.sh"}
-    processURL = core.is_url_unsafe(processed_urls)
+    processURL = core.is_url_unsafe(links)
 
     print(processEmail)
     print(processAttachment)
@@ -83,7 +83,7 @@ def receive_email():
     # Example: Save to file or database
 
     # If a vulnerability was found render an HTML template to pass on the data for a popup
-    if processEmail == 1 or processAttachment == 1 or processURL == 1:
+    if processEmail == 1 or processAttachment[0] == 1 or processURL[0] == 1:
         showWarning = True
         '''return render_template('emailPopup.html', showWarning=showWarning,
                          senderName=senderName,
@@ -95,6 +95,8 @@ def receive_email():
             <p><strong>Warning!</strong> The email you clicked on may be malicious</p>
             <p>{breachInfo}</p>
             <p>{breachList}</p>
+            <p>{processAttachment[1]}</p>
+            <p>{processURL[1]}</p>
         '''
     else:
         showWarning = False

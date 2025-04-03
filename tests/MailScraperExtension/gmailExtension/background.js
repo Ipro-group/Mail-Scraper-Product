@@ -12,6 +12,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log('Email clicked:', request.subject);
         console.log('Sender Name:', request.senderName);
         console.log('Sender Email:', request.senderEmail);
+        console.log('Links:', request.links);
 
         // Send email content to Python server
         fetch('http://localhost:5000/email', {

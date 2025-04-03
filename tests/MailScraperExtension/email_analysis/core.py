@@ -123,9 +123,10 @@ def is_reputable(sender_info):
 
 def is_attachment_unsafe(attachments):
     virus_total = VIRUS_TOTAL_KEY
+    safeList = [0, "Attachment is Safe"]
     if not virus_total:
         print("VIRUS_TOTAL_API not found in environment.")
-        return 0
+        return safeList
 
     headers = {"x-apikey": virus_total}
     upload_url = "https://www.virustotal.com/api/v3/files"
@@ -165,9 +166,10 @@ def is_attachment_unsafe(attachments):
                         "attributes", {}).get("stats", {})
                     malicious = stats.get("malicious", 0)
                     if malicious > 0:
-                        print(
-                            f"File {file_path} is unsafe: {malicious} malicious detections.")
-                        return 1
+                        unSafe =f"File {file_path} is unsafe: {malicious} malicious detections."
+                        print(unSafe)
+                        maliciousList = [1, unSafe]
+                        return maliciousList
                     else:
                         print(f"File {file_path} appears safe.")
                     break
@@ -175,25 +177,30 @@ def is_attachment_unsafe(attachments):
         except Exception as e:
             print(f"Error processing file {file_path}: {e}")
             continue
-    return 0
+    return safeList
 
 
 def is_url_unsafe(links):
     virus_total = VIRUS_TOTAL_KEY
+    safeList = [0, "Links are Safe"]
     if not virus_total:
         print("VIRUS_TOTAL_API not found in environment.")
-        return 0
+        return safeList
 
     headers = {"x-apikey": virus_total}
     url_api_base = "https://www.virustotal.com/api/v3/urls/"
 
+    print("Links List", links)
+
     for link in links:
+        print("Link",link)
         try:
             # Encode the URL in base64 (urlsafe) and remove any trailing '='
-            encoded_url = base64.urlsafe_b64encode(
+            url_id = base64.urlsafe_b64encode(
                 link.encode()).decode().strip("=")
-            lookup_url = url_api_base + encoded_url
-            print(f"Checking URL: {link} (encoded: {encoded_url})")
+            lookup_url = url_api_base + url_id
+            print(lookup_url)
+            print(f"Checking URL: {link} (encoded: {url_id})")
 
             response = requests.get(lookup_url, headers=headers)
             if response.status_code != 200:
@@ -207,16 +214,17 @@ def is_url_unsafe(links):
                 "attributes", {}).get("last_analysis_stats", {})
             malicious = stats.get("malicious", 0)
             if malicious > 0:
-                print(
-                    f"URL {link} is marked unsafe with {malicious} malicious detections.")
-                return 1
+                unSafe = f"URL {link} is marked unsafe with {malicious} malicious detections."
+                print(unSafe)
+                unSafeList = [1, unSafe]
+                return unSafeList
             else:
                 print(f"URL {link} appears safe.")
         except Exception as e:
             print(f"Error processing URL {link}: {e}")
             continue
 
-    return 0
+    return safeList
 
 
 def is_grammar_bad(subject, body, footer):
