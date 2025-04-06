@@ -9,6 +9,8 @@ from flask_cors import CORS  # Import CORS
 import sys
 import os
 import magic
+import re
+from urllib.parse import unquote
 from email_analysis import core
 from werkzeug.utils import secure_filename
 sys.stdout.reconfigure(encoding='utf-8')
@@ -107,7 +109,6 @@ def receive_email():
         "message": message
     })
 
-
 # Define the allowed MIME types and their corresponding extensions
 mime_to_extension = {
     'application/pdf': 'pdf',
@@ -123,12 +124,9 @@ mime_to_extension = {
 }
 
 # Function to check MIME type based on file's magic number (signature)
-
-
 def get_mime_type(file):
     mime = magic.Magic(mime=True)
     return mime.from_buffer(file.read())
-
 
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
@@ -142,42 +140,39 @@ def receive_attachment():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
+    # Clean the filename
+    filename = file.filename
+
+    # URL-decode the filename to remove any encoding (e.g., '%20' for spaces)
+    decoded_filename = unquote(filename)
+
+    # Use regex to extract the portion of the filename between an underscore and the first '0'
+    match = re.search(r'_(.*?)0', decoded_filename)
+    
+    if match:
+        cleaned_filename = match.group(1)
+        # Extract the file extension from the decoded filename
+        ext_match = re.search(r'\.(\w+)', decoded_filename)
+        if ext_match:
+            extension = ext_match.group(0)  # Include the dot (.)
+            cleaned_filename += extension
+    else:
+        cleaned_filename = decoded_filename  # Fallback to original if no match
+        # In case the original filename doesn't have the desired structure, we'll try to extract the extension
+        ext_match = re.search(r'\.(\w+)', filename)
+        if ext_match:
+            extension = ext_match.group(0)  # Include the dot (.)
+            cleaned_filename += extension
+
     try:
-        # Generate a secure filename for the uploaded file to avoid path traversal issues
-        filename = secure_filename(file.filename)
-
-        # Check MIME type
-        file.seek(0)  # Rewind the file to start before checking MIME type
-        mime_type = get_mime_type(file)
-
-        # Check if the MIME type is allowed
-        if mime_type not in mime_to_extension:
-            return jsonify({'error': f'File type not allowed. Received: {mime_type}'}), 400
-
-        # Get the appropriate file extension
-        file_extension = mime_to_extension[mime_type]
-
-        # If the filename doesn't already have the correct extension, add it
-        if not filename.endswith(file_extension):
-            filename = f"{os.path.splitext(filename)[0]}.{file_extension}"
-
-        # Rewind the file after MIME type check
-        file.seek(0)
-
-        # Create the file path to save the file
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-        # Save the file to the server
+        # Generate a secure filename for the uploaded file
+        secure_filename = os.path.basename(cleaned_filename)  # Avoid path traversal issues
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename)
         file.save(file_path)
 
-        # call function in core.py
-        processAttachment = core.is_attachment_unsafe([file_path])
-
-        # Return a success response with the file path
-        return jsonify({'message': 'File uploaded successfully', 'file_path': file_path, 'attachment_unsafe': processAttachment}), 200
+        return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
 
     except Exception as e:
-        # Return a failure response if something went wrong
         return jsonify({'error': str(e)}), 500
 
 
