@@ -22,6 +22,9 @@ UPLOAD_FOLDER = 'attachments'  # You can change this to any valid directory
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Make sure the folder exists
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# files with these extensions will not be downloaded to our attachments folder for security reasons.
+# they are still sent to the api's for processing but we will not be storing them locally for safety.
+DISALLOWED_EXTENSIONS = {'exe', 'bat', 'sh', 'cmd', 'msi', 'py', 'dll'}
 
 # email route
 @app.route('/email', methods=['POST'])
@@ -128,6 +131,10 @@ def get_mime_type(file):
     mime = magic.Magic(mime=True)
     return mime.from_buffer(file.read())
 
+def allowed_file(filename):
+    """Check if the file has an allowed extension."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() not in DISALLOWED_EXTENSIONS
+
 @app.route('/attachments', methods=['POST'])
 def receive_attachment():
     # Check if the request contains files
@@ -154,15 +161,19 @@ def receive_attachment():
         # Extract the file extension from the decoded filename
         ext_match = re.search(r'\.(\w+)', decoded_filename)
         if ext_match:
-            extension = ext_match.group(0)  # Include the dot (.)
+            extension = ext_match.group(0).lower()  # Include the dot (.)
             cleaned_filename += extension
     else:
         cleaned_filename = decoded_filename  # Fallback to original if no match
         # In case the original filename doesn't have the desired structure, we'll try to extract the extension
         ext_match = re.search(r'\.(\w+)', filename)
         if ext_match:
-            extension = ext_match.group(0)  # Include the dot (.)
+            extension = ext_match.group(0).lower()  # Include the dot (.)
             cleaned_filename += extension
+
+    # Check if the extracted file extension is allowed
+    if not allowed_file(extension):
+        return jsonify({'error': 'Disallowed file type'}), 400
 
     try:
         # Generate a secure filename for the uploaded file
@@ -174,7 +185,6 @@ def receive_attachment():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(port=5000)
