@@ -1,8 +1,8 @@
 # Mail-Scraper-Product
+Welcome to MailScaper!!
 
-HI THIS IS OUR PROJECT! I HOPE YOU LIKE IT. DON'T TRUST US TO FIGHT PHISHING ACTIVITIES, BUT YOUR EMAILS WILL BE SAFER THAN EVER (MAYBE).
-Our tool has an accuracy range of 0-100%! It could work, or it could not! Also, we are definitely not selling your data to China, but SSNs for registration are encouraged. Please state whether you like being a U.S. citizen, and if you don't, know that your SSN will be sold to an immigrant.
+MailScraper is an all-in-one phishing protection system for Gmail! It leverages powerful APIs to detect and search for any harmful links, senders, or attachments within an email. It works specifically on Chrome with Gmail and utilizes a locally run server to process the information so any personally identifiable information is handled by major organizations with fantastic security and not by our small product. Please see our website at https://ipro-group.github.io/Mail-scraper/index.html and follow the instructions to enjoy our product!
 
-Enjoy MailScraper!!
+We hope you feel safer with MailScraper
 
 - MailScraper Team
